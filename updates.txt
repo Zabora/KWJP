@@ -1,0 +1,11 @@
+######
+
+24.04.2020
+
+1. Rozmowy na temat struktury i ogólnej koncepcji projektu, wybór frameworku (Flask) i wstępne zapoznanie się z nim
+
+2. Wszystko zaplanowane zostało zrealizowane 
+
+3. Napisanie prostego routingu i testy, zaprojektowanie bazy danych
+
+4. Póki co brak problemów
