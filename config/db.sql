@@ -19,3 +19,20 @@ CREATE TABLE IF NOT EXISTS `recovery_tokens` (
   PRIMARY KEY (`id`),
   KEY `search` (`state`,`token`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `flashcard_sets` (
+  'set_id' int(12) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  'set_name' varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`set_id`),
+  KEY user_id(user_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+CREATE TABLE IF NOT EXISTS `flashcard` (
+  `id` int(16) NOT NULL AUTO_INCREMENT,
+  'set_id' int(12) NOT NULL,
+  'flashcard_name' varchar(100) NOT NULL,
+  'answer' varchar(100) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  KEY set_id(set_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

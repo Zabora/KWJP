@@ -1,3 +1,23 @@
+##############################################################
+##  1. Co zrobiliśmy w tym tygodniu?                        ##
+##  2. Czego nie udało się zrobić, a zostało zaplanowane?   ##
+##  3. Co planujemy zrobić w następnym tygodniu?            ##
+##  4. Co nas blokuje? Z czym mamy problem?                 ##
+##############################################################
+
+1.05.2020
+
+1. Zapoznaliśmy się z Flaskiem, mamy prawie-finalny projekt bazy, podjęte decyzje na temat podstron i ich struktury, 
+   wstępny routing
+
+2. Wszystko zaplanowane zostało zrealizowane 
+
+3. Sfinalizowanie bazy danych oraz podjęcie możliwie wszystkich decyzji na temat struktury projektu, stworzenie 
+   bazowego templateu html/css
+
+4. Trzeba już podjąc decyzje na temat całej struktury, więc pomimo że jesteśmy zgodni na jej temat, staramy się 
+   to możliwie przemyśleć żeby nie pojawiły się później niedociągnięcia (przykładowo brak możliwości resetu hasła)
+
 ######
 
 24.04.2020
@@ -9,3 +29,5 @@
 3. Napisanie prostego routingu i testy, zaprojektowanie bazy danych
 
 4. Póki co brak problemów
+
+######
