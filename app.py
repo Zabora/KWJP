@@ -41,6 +41,10 @@ def user(user):
 @app.route("/flashcards/<id>")
 def flashcard(id):
   return f"<p>This is flashcards {id}</p>"
+  
+@app.route("/learn/<id>")
+def learn(id):
+  return f"<p>This is learn {id}</p>"
 
 @app.route("/flashcards/<id>/create", methods=["POST", "GET"])
 def update(id):
