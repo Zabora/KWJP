@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Login Page{% endblock %}
+{% block content %}
+  <form method="POST" action="">
+    Email <input type="email" name="email" value="{% if content.get('email') %}{{ content.get('email') }}{% endif %}"/>
+    <br>
+    Password <input type="password" name="password"/>
+    <br>
+    <input type="submit">
+  </form>
+{% endblock %}

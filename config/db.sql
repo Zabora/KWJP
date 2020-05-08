@@ -1,9 +1,14 @@
+DROP DATABASE IF EXISTS `KWJP`;
+
+CREATE DATABASE IF NOT EXISTS `KWJP`;
+
+USE `KWJP`;
+
 CREATE TABLE IF NOT EXISTS `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) DEFAULT NULL,
-  `surname` varchar(100) DEFAULT NULL,
-  `pass` varchar(100) NOT NULL,
   `email` varchar(50) NOT NULL,
+  `password` varchar(100) NOT NULL,
+  `name` varchar(100) DEFAULT NULL,
   `privileges` enum('admin','user') NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
@@ -21,18 +26,18 @@ CREATE TABLE IF NOT EXISTS `recovery_tokens` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `flashcard_sets` (
-  'set_id' int(12) NOT NULL AUTO_INCREMENT,
+  `set_id` int(12) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
-  'set_name' varchar(100) DEFAULT NULL,
+  `set_name` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`set_id`),
   KEY user_id(user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 CREATE TABLE IF NOT EXISTS `flashcard` (
   `id` int(16) NOT NULL AUTO_INCREMENT,
-  'set_id' int(12) NOT NULL,
-  'flashcard_name' varchar(100) NOT NULL,
-  'answer' varchar(100) DEFAULT NULL,
+  `set_id` int(12) NOT NULL,
+  `flashcard_name` varchar(100) NOT NULL,
+  `answer` varchar(100) DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY set_id(set_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

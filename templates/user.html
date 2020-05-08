@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Login Page{% endblock %}
+{% block content %}
+  <table border = 1>
+    <tr>
+      <th>ID</th>
+      <th>EMAIL</th>
+      <th>NAME</th>
+      <th>PRIVILEGES</th>
+    </tr>
+    <tr>
+      <td>{{content.get('id')}}</td>
+      <td>{{content.get('email')}}</td>
+      <td>{{content.get('name')}}</td>
+      <td>{{content.get('privileges')}}</td>
+    </tr>
+  </table>
+  <a href="/logout">Logout</a>
+{% endblock %}

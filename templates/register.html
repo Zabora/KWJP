@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Register Page{% endblock %}
+{% block content %}
+  <form method="POST" action="">
+    Name <input type="text" name="name" value="{% if content.get('name') %}{{ content.get('name') }}{% endif %}"/>
+    <br>
+    Email <input type="email" name="email" value="{% if content.get('email') %}{{ content.get('email') }}{% endif %}"/>
+    <br>
+    Password <input type="password" name="password"/>
+    <br>
+    Repassword <input type="password" name="repassword"/>
+    <br>
+    <input type="submit">
+  </form>
+{% endblock %}
