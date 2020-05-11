@@ -1,7 +1,10 @@
 from flask import Flask, request, redirect, url_for, render_template, session, flash
 from flask_mysqldb import MySQL
 from flask_bcrypt import Bcrypt
+from Cryptodome.Random import get_random_bytes
+from flask_mail import Mail, Message
 from datetime import timedelta
+from base64 import b64encode
 import yaml
 import re
 
@@ -27,6 +30,15 @@ app.config['MYSQL_USER'] = db['mysql_user']
 app.config['MYSQL_PASSWORD'] = db['mysql_password']
 app.config['MYSQL_DB'] = db['mysql_db']
 mysql = MySQL(app)
+
+# Mailer
+app.config['MAIL_SERVER'] = config['mail']['host']
+app.config['MAIL_PORT'] = config['mail']['port']
+app.config['MAIL_USERNAME'] = config['mail']['username']
+app.config['MAIL_PASSWORD'] = config['mail']['password']
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+mail = Mail(app)
 
 # Bcrypt
 bcrypt = Bcrypt(app)
@@ -62,10 +74,12 @@ def login():
     cur = mysql.connection.cursor()
     results = cur.execute("""SELECT * FROM `users` WHERE `email` = %s""", [user.email])
     if results == 0:
+      cur.close()
       flash("Hasło lub email są niepoprawne")
       return render_template("login.html", content={"email": user.email}), 400
     
     result = cur.fetchone()
+    cur.close()
     if bcrypt.check_password_hash(result[2], user.password):
       session.permanent = True
       session["user"] = {
@@ -139,26 +153,42 @@ def recovery():
   if request.method == "POST":
     user.email = request.form['email']
 
-    # walidacja email, specyfikacja HTML5
+    # Walidacja email
     if not re.match(emailRegex, user.email):
-      flash(f"Email ma nieprawidłowy format\n{emailRegexMsg}")
+      flash(f"Email ma niepoprawny format\n{emailRegexMsg}")
       return render_template("recovery.html", content={"email": user.email}), 400
     
     cur = mysql.connection.cursor()
     results = cur.execute("""SELECT * FROM `users` WHERE `email` = %s""", [user.email])
     if results == 0:
-      flash("Email został wysłany na twoją skrzynke pocztową, o ile jest poprawny")
-      return render_template("recovery.html", content={}), 200
-    else:
-      #TODO:
-      pass
+      # Powinno się mówić, że takiego email nie ma w bazie, czy udawać że jest?
+      cur.close()
+      flash("Email nie występuje w bazie")
+      return render_template("recovery.html", content={"email": user.email}), 400
+    
+    result = cur.fetchone()
+    user.id = result[0]
+    token = b64encode(get_random_bytes(94)).decode('utf-8')
+    #'UPDATE `recovery_tokens` SET `state` = \'expired\' WHERE `state` = \'active\' AND `user_id` = ?'
+    #'INSERT INTO `recovery_tokens` (`user_id`, `token`, `dbtable`) VALUES (?, ?, ?)'
+    cur.execute("""UPDATE `recovery_tokens` SET `state` = %s WHERE `state` = %s AND `user_id` = %s""", ('expired', 'active', user.id))
+    cur.execute("""INSERT INTO `recovery_tokens` (`user_id`, `token`) VALUES (%s, %s)""", (user.id, token))
+    mysql.connection.commit()
+    cur.close()
+
+    msg = Message('Reset password', sender = config['mail']['username'], recipients = [user.email])
+    msg.html = render_template('mail_reset_password.html', content={"token": token})
+    #msg.body = f'<!DOCTYPE html><html><body><b>Token</b>: {token}<br><br><a href="http://127.0.0.1:5000/resetpassword?token={token}">reset</a></body></html>'
+    mail.send(msg)
+
+    return redirect('/login')
   else:
     return render_template("recovery.html"), 200
 
 @app.route("/resetpassword", methods=["POST", "GET"])
 def reset():
   if request.method == "POST":
-    return "<p>This is reset password page POST METHOD</p>"
+    pass
   else:
     if request.args.get('token'):
       return render_template("reset_password.html", content={"token": request.args.get('token')}), 200

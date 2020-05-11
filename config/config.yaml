@@ -1,1 +1,7 @@
 secret_key: 'to jest sekret'
+mail:
+  host: 'smtp.gmail.com'
+  port: 587
+  username: 'moj.bank.jest.fajny@gmail.com'
+  password: 'qaz!@#123'
+  
