@@ -8,7 +8,7 @@ from base64 import b64encode
 import yaml
 import re
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder='assets')
 
 # Use config
 config = yaml.load(open('./config/config.yaml'), Loader=yaml.FullLoader)

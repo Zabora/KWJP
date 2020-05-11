@@ -1,5 +1,37 @@
 {% extends "base.html" %}
 {% block title %}Home Page{% endblock %}
 {% block content %}
-  <p>This is home page</p>
+
+<head>
+  <style>
+    header.test {
+    position: relative;
+    width: 100%;
+    height: auto;
+    min-height: 35rem;
+    padding: 15rem 0;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 75%, #000000 100%), url("assets/bg-masthead.jpg");
+    background-position: center;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-size: cover;
+  }
+  </style>
+</head>
+
+<body>
+  <div class="row">
+  <header class="test">
+    <div class="container pt-300 d-flex h-100 align-items-center" >
+        <div class="mx-auto text-center">
+            <h1 class="mx-auto my-0 text-uppercase">Untitled KWJP Project</h1>
+            <h2 class="text-black-50 mx-auto mt-2 mb-5">Może się coś ktoś nauczy</h2>
+            <a class="btn btn-primary js-scroll-trigger" href="/login">Logowanie</a>
+            <a class="btn btn-primary js-scroll-trigger" href="/register">Zarejestruj się</a>
+        </div>
+    </div>
+  </header>
+  <!-- <img src="bg-masthead.png" alt="" width="10%" height="10%"/> -->
+</div>
+</body>
 {% endblock %}
