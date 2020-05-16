@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password` varchar(100) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `privileges` enum('admin','user') NOT NULL,
+  `status` enum('active','banned') NOT NULL DEFAULT 'active',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
