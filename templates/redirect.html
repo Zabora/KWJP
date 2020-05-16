@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html>
+   <body>
+      <script>
+         setTimeout(function(){
+            window.location.href = "{{ url_for('login') }}";
+         }, {{content.get('time')}});
+      </script>
+      <h2>{{content.get('msg')}}</h2>
+   </body>
+</html>

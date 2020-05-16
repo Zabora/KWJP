@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Login Page{% endblock %}
+{% block title %}User Page{% endblock %}
 {% block content %}
   <table border = 1>
     <tr>
@@ -7,12 +7,14 @@
       <th>EMAIL</th>
       <th>NAME</th>
       <th>PRIVILEGES</th>
+      <th>STATUS</th>
     </tr>
     <tr>
       <td>{{content.get('id')}}</td>
       <td>{{content.get('email')}}</td>
       <td>{{content.get('name')}}</td>
       <td>{{content.get('privileges')}}</td>
+      <td>{{content.get('status')}}</td>
     </tr>
   </table>
   <a href="/logout">Logout</a>

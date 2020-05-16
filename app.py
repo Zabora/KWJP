@@ -1,7 +1,10 @@
 from flask import Flask, request, redirect, url_for, render_template, session, flash
 from flask_mysqldb import MySQL
 from flask_bcrypt import Bcrypt
-from datetime import timedelta
+from Cryptodome.Random import get_random_bytes
+from flask_mail import Mail, Message
+from datetime import datetime, timedelta
+from base64 import b64encode
 import yaml
 import re
 
@@ -18,7 +21,7 @@ emailRegexMsg = "Wprowadzono niepoprawny adres email."
 
 # Password regex
 passwordRegex = r"(^(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,32}$)"
-passwordRegexMsg = "Od 6 do 32 znakow. Musi zawierac cyfre, mala i duza litere"
+passwordRegexMsg = "Od 6 do 32 znaków. Musi zawierać cyfre, małą i dużą litere"
 
 # Database
 db = yaml.load(open('./config/db.yaml'), Loader=yaml.FullLoader)
@@ -26,7 +29,17 @@ app.config['MYSQL_HOST'] = db['mysql_host']
 app.config['MYSQL_USER'] = db['mysql_user']
 app.config['MYSQL_PASSWORD'] = db['mysql_password']
 app.config['MYSQL_DB'] = db['mysql_db']
+#app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
+
+# Mailer
+app.config['MAIL_SERVER'] = config['mail']['host']
+app.config['MAIL_PORT'] = config['mail']['port']
+app.config['MAIL_USERNAME'] = config['mail']['username']
+app.config['MAIL_PASSWORD'] = config['mail']['password']
+app.config['MAIL_USE_TLS'] = True
+app.config['MAIL_USE_SSL'] = False
+mail = Mail(app)
 
 # Bcrypt
 bcrypt = Bcrypt(app)
@@ -59,28 +72,35 @@ def login():
       flash(f"Hasło ma nieprawidłowy format\n{passwordRegexMsg}")
       return render_template("login.html", content={"email": user.email}), 400
     
-    cur = mysql.connection.cursor()
-    results = cur.execute("""SELECT * FROM `users` WHERE `email` = %s""", [user.email])
-    if results == 0:
-      flash("Hasło lub email są niepoprawne")
-      return render_template("login.html", content={"email": user.email}), 400
-    
-    result = cur.fetchone()
-    if bcrypt.check_password_hash(result[2], user.password):
-      session.permanent = True
-      session["user"] = {
-        "id": result[0],
-        "email": user.email,
-        "name": result[3],
-        "privileges": result[4]
-      }
-      if result[4] == 'admin':
-        return redirect('/dashboard')
-      else:
-        return redirect(f'users/{result[3]}')
+    try:
+      cur = mysql.connection.cursor()
+      results = cur.execute("""SELECT * FROM `users` WHERE `email` = %s""", [user.email])
+    except Exception as ex:
+      return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
     else:
-      flash("Hasło lub email są niepoprawne")
-      return render_template("login.html", content={"email": user.email}), 400
+      if results == 0:
+        cur.close()
+        flash("Hasło lub email są niepoprawne")
+        return render_template("login.html", content={"email": user.email}), 400
+      
+      result = cur.fetchone()
+      cur.close()
+      if bcrypt.check_password_hash(result[2], user.password):
+        session.permanent = True
+        session["user"] = {
+          "id": result[0],
+          "email": user.email,
+          "name": result[3],
+          "privileges": result[4],
+          "status": result[5]
+        }
+        if result[4] == 'admin':
+          return redirect('/dashboard')
+        else:
+          return redirect(f'users/{result[3]}')
+      else:
+        flash("Hasło lub email są niepoprawne")
+        return render_template("login.html", content={"email": user.email}), 400
   else:
     if "user" in session:
       userData = session["user"]
@@ -120,17 +140,27 @@ def register():
       flash("Hasła muszą być takie same")
       return render_template("register.html", content={"email": user.email, "name": user.name}), 400
     
-    cur = mysql.connection.cursor()
-    results = cur.execute("""SELECT * FROM `users` WHERE `email` = %s""", [user.email])
-    if results != 0:
-      return render_template("register.html", content={}), 400
-    
-    pw_hash = bcrypt.generate_password_hash(user.password)
-    cur.execute("""INSERT INTO users(`email`, `password`, `name`, `privileges`) VALUES(%s, %s, %s, %s)""", (user.email, pw_hash, user.name, 'user'))
-    mysql.connection.commit()
-    cur.close()
-
-    return redirect('/login')
+    try:
+      cur = mysql.connection.cursor()
+      results = cur.execute("""SELECT * FROM `users` WHERE `email` = %s""", [user.email])
+    except Exception as ex:
+      return render_template("error.html", content={"code": 500, "error": "Connect/Cursor"}), 500
+    else:
+      if results != 0:
+        cur.close()
+        # Powinno się mówić, że takiego email nie ma w bazie, czy udawać że jest?
+        flash("Email jest już zajęty")
+        return render_template("register.html", content={}), 400
+      
+      try:
+        pw_hash = bcrypt.generate_password_hash(user.password)
+        cur.execute("""INSERT INTO users(`email`, `password`, `name`, `privileges`) VALUES(%s, %s, %s, %s)""", (user.email, pw_hash, user.name, 'user'))
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect/Duplicate"}), 500
+      else:
+        mysql.connection.commit()
+        cur.close()
+        return redirect('/login')
   else:
     return render_template("register.html", content={}), 400
 
@@ -139,26 +169,102 @@ def recovery():
   if request.method == "POST":
     user.email = request.form['email']
 
-    # walidacja email, specyfikacja HTML5
+    # Walidacja email
     if not re.match(emailRegex, user.email):
-      flash(f"Email ma nieprawidłowy format\n{emailRegexMsg}")
+      flash(f"Email ma niepoprawny format\n{emailRegexMsg}")
       return render_template("recovery.html", content={"email": user.email}), 400
     
-    cur = mysql.connection.cursor()
-    results = cur.execute("""SELECT * FROM `users` WHERE `email` = %s""", [user.email])
-    if results == 0:
-      flash("Email został wysłany na twoją skrzynke pocztową, o ile jest poprawny")
-      return render_template("recovery.html", content={}), 200
+    # Tu chyba przyda się stworzyć Thread żeby klient nie czekał
+    # bo możliwe że bardzo długo to trwa, a klient i tak ma czekac na maila
+    # TODO:
+
+    try:
+      cur = mysql.connection.cursor()
+      results = cur.execute("""SELECT * FROM `users` WHERE `email` = %s""", [user.email])
+    except Exception as ex:
+      return render_template("error.html", content={"code": 500, "error": "Connect/Cursor"}), 500
     else:
-      #TODO:
-      pass
+      if results == 0:
+        # Powinno się mówić, że takiego email nie ma w bazie, czy udawać że jest?
+        cur.close()
+        flash("Email nie występuje w bazie")
+        return render_template("recovery.html", content={"email": user.email}), 400
+
+      try:
+        result = cur.fetchone()
+        user.id = result[0]
+        token = b64encode(get_random_bytes(94)).decode('utf-8')
+        token = token.replace("+", "-").replace("/", "_") # trzeba zrobic url safe
+        cur.execute("""UPDATE `recovery_tokens` SET `state` = %s WHERE `state` = %s AND `user_id` = %s""", ('expired', 'active', user.id))
+        cur.execute("""INSERT INTO `recovery_tokens` (`user_id`, `token`) VALUES (%s, %s)""", (user.id, token))
+        mysql.connection.commit()
+        cur.close()
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect/Update/Insert"}), 500
+      else:
+        msg = Message('Reset password', sender = config['mail']['username'], recipients = [user.email])
+        msg.html = render_template("mail_reset_password.html", content={"token": token})
+        mail.send(msg)
+
+        return redirect('/login')
   else:
     return render_template("recovery.html"), 200
 
 @app.route("/resetpassword", methods=["POST", "GET"])
-def reset():
+def resetpassword():
   if request.method == "POST":
-    return "<p>This is reset password page POST METHOD</p>"
+    user.password = request.form['password']
+    user.repassword = request.form['repassword']
+    user.token = request.form['token']
+
+    # wszystkie pola mają być wypełnione
+    if not user.password or not user.repassword:
+      flash("Wszystkie pola muszą być wypełnione")
+      return render_template("reset_password.html", content={"token": user.token}), 400
+    # walidacja hasła
+    if not re.match(passwordRegex, user.password):
+      flash(f"Hasło ma niepoprawny format\n{passwordRegexMsg}")
+      return render_template("reset_password.html", content={"token": user.token}), 400
+    # sprawdzenie czy hasła są takie same
+    if user.password != user.repassword:
+      flash("Hasła muszą być takie same")
+      return render_template("reset_password.html", content={"token": user.token}), 400
+
+    try:
+      cur = mysql.connection.cursor()
+      results = cur.execute("""SELECT * FROM `recovery_tokens` WHERE `state` = \'active\' AND `token` = %s""", [user.token])
+    except Exception as ex:
+      return render_template("error.html", content={"code": 500, "error": "Connect/Cursor"}), 500
+    else:
+      if results == 0:
+        cur.close()
+        flash("Token wygasł lub jest niepoprawny")
+        return render_template("reset_password.html", content={}), 400
+
+      result = cur.fetchone()
+      user.id = result[1]
+      time = result[3]
+      if (time + timedelta(days=1)) < datetime.now():
+        try:
+          cur.execute("""UPDATE `recovery_tokens` SET `state` = \'expired\' WHERE `state` = \'active\' AND `token` = %s""", [user.token])
+        except Exception as ex:
+          return render_template("error.html", content={"code": 500, "error": "Connect/Update/Expired"}), 500
+        else:
+          mysql.connection.commit()
+          cur.close()
+          flash("Token wygasł lub jest niepoprawny")
+          return render_template("reset_password.html", content={}), 400
+
+      try:
+        cur.execute("""UPDATE `recovery_tokens` SET `state` = \'expired\' WHERE `state` = \'active\' AND `token` = %s""", [user.token])
+        pw_hash = bcrypt.generate_password_hash(user.password)
+        cur.execute("""UPDATE `users` SET `password` = %s WHERE `id` = %s""", (pw_hash, user.id))
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect/Update"}), 500
+      else:
+        mysql.connection.commit()
+        cur.close()
+        return render_template("redirect.html", content={"time": 5000, "msg": "Hasło zostało zmienione. Za 5 sekund zostaniesz przekierowany na strone logowania"})
   else:
     if request.args.get('token'):
       return render_template("reset_password.html", content={"token": request.args.get('token')}), 200
@@ -194,7 +300,71 @@ def learn(id):
 
 @app.route("/dashboard")
 def dashboard():
-  return "<p>This is admin dashboard</p>"
+  if "user" in session:
+    userData = session["user"]
+    if userData.get("privileges") == 'admin':
+      return render_template("dashboard.html"), 200
+    else:
+      return redirect("login")
+  else:
+    return redirect("login")
+
+@app.route("/dashboard/users")
+def users():
+  if "user" in session:
+    userData = session["user"]
+    if userData.get("privileges") == 'admin':
+      try:
+        cur = mysql.connection.cursor()
+        cur.execute("""SELECT * FROM `users`""")
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+      else:
+        results = cur.fetchall()
+        cur.close()
+        return render_template("users.html", content = results)
+    else:
+      return redirect("login")
+  else:
+    return redirect("login")
+
+@app.route("/dashboard/users/<id>/lock")
+def lock(id):
+  if "user" in session:
+    userData = session["user"]
+    if userData.get("privileges") == 'admin':
+      try:
+        cur = mysql.connection.cursor()
+        results = cur.execute("""UPDATE `users` SET `status` = %s WHERE `id` = %s""", ("banned", id))
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect/Upadate ban"}), 500
+      else:
+        mysql.connection.commit()
+        cur.close()
+        return redirect("/dashboard/users")
+    else:
+      return redirect("login")
+  else:
+    return redirect("login")
+
+@app.route("/dashboard/users/<id>/unlock")
+def unlock(id):
+  if "user" in session:
+    userData = session["user"]
+    if userData.get("privileges") == 'admin':
+      try:
+        cur = mysql.connection.cursor()
+        results = cur.execute("""UPDATE `users` SET `status` = %s WHERE `id` = %s""", ("active", id))
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect/Upadate unban"}), 500
+      else:
+        mysql.connection.commit()
+        cur.close()
+        return redirect("/dashboard/users")
+    else:
+      return redirect("login")
+  else:
+    return redirect("login")
 
 if __name__ == "__main__":
   app.run(debug=True)

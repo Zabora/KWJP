@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Page{% endblock %}
+{% block content %}
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <table border = 1>
+    <tr>
+      <th>ID</th>
+      <th>EMAIL</th>
+      <th>NAME</th>
+      <th>PRIVILEGES</th>
+      <th>STATUS</th>
+      <th>BUTTON</th>
+    </tr>
+    {% for item in content %}
+    <tr>
+      <td>{{item[0]}}</td>
+      <td>{{item[1]}}</td>
+      <td>{{item[3]}}</td>
+      <td>{{item[4]}}</td>
+      <td>{{item[5]}}</td>
+      {% if item[5] == "active" %}
+      <td><a href="{{ url_for('lock', id=item[0]) }}">ban</a></td>
+      {% else %}
+      <td><a href="{{ url_for('unlock', id=item[0]) }}">unban</a></td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+  <br>
+  <a href="{{ url_for('dashboard') }}">Dashboard</a>
+{% endblock %}
