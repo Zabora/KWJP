@@ -10,11 +10,20 @@
     height: auto;
     min-height: 35rem;
     padding: 15rem 0;
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 75%, #000000 100%), url("assets/bg-masthead.jpg");
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.7) 75%, #000000 100%), url("assets/IMG_20190901_133129-02-01.jpeg");
+    /* background: url("assets/bg-masthead.jpg"); */
     background-position: center;
     background-repeat: no-repeat;
     background-attachment: scroll;
     background-size: cover;
+  }
+
+  .about-section {
+  padding-top: 10rem;
+  background: linear-gradient(to bottom, #000000 0%, rgba(0, 0, 0, 0.9) 75%, rgba(0, 0, 0, 0.8) 100%);
+  }
+  .about-section p {
+   margin-bottom: 5rem;
   }
   </style>
 </head>
@@ -24,14 +33,69 @@
   <header class="test">
     <div class="container pt-300 d-flex h-100 align-items-center" >
         <div class="mx-auto text-center">
-            <h1 class="mx-auto my-0 text-uppercase">Untitled KWJP Project</h1>
+            <h1.display1 style="font-size: 4.5rem" class="mx-auto my-0 text-uppercase">Untitled KWJP Project</h1>
             <h2 class="text-black-50 mx-auto mt-2 mb-5">Może się coś ktoś nauczy</h2>
-            <a class="btn btn-primary js-scroll-trigger" href="/login">Logowanie</a>
-            <a class="btn btn-primary js-scroll-trigger" href="/register">Zarejestruj się</a>
+            <a style="color: #222222; border-color: #ffffff; background-color: #7cadef" class="btn btn-primary js-scroll-trigger" href="/login">Logowanie</a>
+            <a style="color: #222222; border-color: #ffffff; background-color: #e0555a" class="btn btn-primary js-scroll-trigger" href="/register">Zarejestruj się</a>
         </div>
     </div>
   </header>
   <!-- <img src="bg-masthead.png" alt="" width="10%" height="10%"/> -->
 </div>
+
+
+<section class="about-section text-center" id="about">
+  <div class="container">
+      <div class="row">
+          <div class="col-lg-8 mx-auto">
+              <h2 class="text-white mb-4">Built with Bootstrap 4</h2>
+              <p class="text-white-50">Grayscale is a free Bootstrap theme created by Start Bootstrap. It can be yours right now, simply download the template on <a href="http://startbootstrap.com/template-overviews/grayscale/">the preview page</a>. The theme is open source, and you can use it for any purpose, personal or commercial.</p>
+          </div>
+      </div>
+      <img width=10% height=10% class="img-fluid" src="assets/bg-masthead.jpg" alt="" />
+  </div>
+</section>
+
+<section class="contact-section bg-black">
+  <div class="container">
+      <div class="row">
+          <div class="col-md-4 mb-3 mb-md-0">
+              <div class="card py-4 h-100">
+                  <div class="card-body text-center">
+                      <i class="fas fa-map-marked-alt text-primary mb-2"></i>
+                      <h4 class="text-uppercase m-0">Address</h4>
+                      <hr class="my-4" />
+                      <div class="small text-black-50">4923 Market Street, Orlando FL</div>
+                  </div>
+              </div>
+          </div>
+          <div class="col-md-4 mb-3 mb-md-0">
+              <div class="card py-4 h-100">
+                  <div class="card-body text-center">
+                      <i class="fas fa-envelope text-primary mb-2"></i>
+                      <h4 class="text-uppercase m-0">Email</h4>
+                      <hr class="my-4" />
+                      <div class="small text-black-50"><a href="#!">hello@yourdomain.com</a></div>
+                  </div>
+              </div>
+          </div>
+          <div class="col-md-4 mb-3 mb-md-0">
+              <div class="card py-4 h-100">
+                  <div class="card-body text-center">
+                      <i class="fas fa-mobile-alt text-primary mb-2"></i>
+                      <h4 class="text-uppercase m-0">Phone</h4>
+                      <hr class="my-4" />
+                      <div class="small text-black-50">+1 (555) 902-8832</div>
+                  </div>
+              </div>
+          </div>
+      </div>
+      <div class="social d-flex justify-content-center">
+          <a class="mx-2" href="#!"><i class="fab fa-twitter"></i></a><a class="mx-2" href="#!"><i class="fab fa-facebook-f"></i></a><a class="mx-2" href="#!"><i class="fab fa-github"></i></a>
+      </div>
+  </div>
+</section>
+
+<!-- <footer class="footer bg-black small text-center text-black-50"><div class="container">Copyright © Your Website 2020</div></footer> -->
 </body>
 {% endblock %}
