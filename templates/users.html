@@ -13,20 +13,20 @@
       <th>EMAIL</th>
       <th>NAME</th>
       <th>PRIVILEGES</th>
-      <th>STATUS</th>
+      <th>STATE</th>
       <th>BUTTON</th>
     </tr>
     {% for item in content %}
     <tr>
-      <td>{{item[0]}}</td>
-      <td>{{item[1]}}</td>
-      <td>{{item[3]}}</td>
-      <td>{{item[4]}}</td>
-      <td>{{item[5]}}</td>
-      {% if item[5] == "active" %}
-      <td><a href="{{ url_for('lock', id=item[0]) }}">ban</a></td>
+      <td>{{item["id"]}}</td>
+      <td>{{item["email"]}}</td>
+      <td>{{item["name"]}}</td>
+      <td>{{item["privileges"]}}</td>
+      <td>{{item["state"]}}</td>
+      {% if item["state"] == "active" %}
+      <td><a href="{{ url_for('lock', id=item['id']) }}">ban</a></td>
       {% else %}
-      <td><a href="{{ url_for('unlock', id=item[0]) }}">unban</a></td>
+      <td><a href="{{ url_for('unlock', id=item['id']) }}">unban</a></td>
       {% endif %}
     </tr>
     {% endfor %}

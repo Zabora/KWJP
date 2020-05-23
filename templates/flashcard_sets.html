@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Page{% endblock %}
+{% block content %}
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  {% if content["type"] == "admin" %}
+  <form method="GET" action="{{ url_for('flashcardsAdmin') }}">
+  {% else %}
+  <form method="GET" action="{{ url_for('flashcards') }}">
+  {% endif %}
+    <div class="input-group mb-3">
+      <input type="text" name="search" class="form-control" placeholder="Recipient's username" aria-label="Recipient's username" aria-describedby="button-addon2">
+      <div class="input-group-append">
+        <button class="btn btn-outline-secondary" type="submit" id="button-addon2">Button</button>
+      </div>
+    </div>
+  </form>
+  <table border = 1>
+    <tr>
+      <th>SET_ID</th>
+      <th>USER_ID</th>
+      <th>SET_NAME</th>
+      {% if content["type"] == "admin" %}
+      <th>BUTTON</th>
+      {% endif %}
+    </tr>
+    {% for item in content["flashcard_sets"] %}
+    <tr>
+      <td>{{item["set_id"]}}</td>
+      <td>{{item["user_id"]}}</td>
+      <td><a href="{{ url_for('flashcard', id=item['set_id']) }}">{{item["set_name"]}}</a></td>
+      {% if content["type"] == "admin" %}
+        {% if item["state"] == "active" %}
+        <td><a href="{{ url_for('lockFlashcard', id=item['set_id']) }}">ban</a></td>
+        {% else %}
+        <td><a href="{{ url_for('unlockFlashcard', id=item['set_id']) }}">unban</a></td>
+        {% endif %}
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+  <br>
+  <a href="{{ url_for('dashboard') }}">Dashboard</a>
+{% endblock %}

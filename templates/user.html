@@ -7,15 +7,17 @@
       <th>EMAIL</th>
       <th>NAME</th>
       <th>PRIVILEGES</th>
-      <th>STATUS</th>
+      <th>STATE</th>
     </tr>
     <tr>
       <td>{{content.get('id')}}</td>
       <td>{{content.get('email')}}</td>
       <td>{{content.get('name')}}</td>
       <td>{{content.get('privileges')}}</td>
-      <td>{{content.get('status')}}</td>
+      <td>{{content.get('state')}}</td>
     </tr>
   </table>
   <a href="/logout">Logout</a>
+  <br>
+  <a href="/flashcards">Flashcards</a>
 {% endblock %}

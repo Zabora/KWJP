@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+{% block title %}Dashboard Page{% endblock %}
+{% block content %}
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <table border = 1>
+    <tr>
+      <th>SET_ID</th>
+      <th>USER_ID</th>
+      <th>SET_NAME</th>
+    </tr>
+    <tr>
+      <td>{{content["flashcard_sets"]["set_id"]}}</td>
+      <td>{{content["flashcard_sets"]["user_id"]}}</td>
+      <td>{{content["flashcard_sets"]["set_name"]}}</td>
+    </tr>
+  </table>
+  <br>
+  <table border = 1>
+    <tr>
+      <th>ID</th>
+      <th>SET_ID</th>
+      <th>FLASHCARD_NAME</th>
+      <th>ANSWER</th>
+    </tr>
+    {% for item in content["flashcard"] %}
+    <tr>
+      <td>{{item["id"]}}</td>
+      <td>{{item["set_id"]}}</td>
+      <td>{{item["flashcard_name"]}}</td>
+      <td>{{item["answer"]}}</td>
+    </tr>
+    {% endfor %}
+  </table>
+  <br>
+  <a href="{{ url_for('dashboard') }}">Dashboard</a>
+{% endblock %}

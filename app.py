@@ -29,7 +29,7 @@ app.config['MYSQL_HOST'] = db['mysql_host']
 app.config['MYSQL_USER'] = db['mysql_user']
 app.config['MYSQL_PASSWORD'] = db['mysql_password']
 app.config['MYSQL_DB'] = db['mysql_db']
-#app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
 mysql = MySQL(app)
 
 # Mailer
@@ -85,19 +85,24 @@ def login():
       
       result = cur.fetchone()
       cur.close()
-      if bcrypt.check_password_hash(result[2], user.password):
+      if result["state"] == "banned":
+        flash("Twoje konto jest zablokowane")
+        return render_template("login.html", content={}), 403
+
+      if bcrypt.check_password_hash(result["password"], user.password):
         session.permanent = True
         session["user"] = {
-          "id": result[0],
+          "id": result["id"],
           "email": user.email,
-          "name": result[3],
-          "privileges": result[4],
-          "status": result[5]
+          "name": result["name"],
+          "privileges": result["privileges"],
+          "state": result["state"]
         }
-        if result[4] == 'admin':
+
+        if result["privileges"] == 'admin':
           return redirect('/dashboard')
         else:
-          return redirect(f'users/{result[3]}')
+          return redirect(f'users/{result["name"]}')
       else:
         flash("Hasło lub email są niepoprawne")
         return render_template("login.html", content={"email": user.email}), 400
@@ -192,7 +197,7 @@ def recovery():
 
       try:
         result = cur.fetchone()
-        user.id = result[0]
+        user.id = result["id"]
         token = b64encode(get_random_bytes(94)).decode('utf-8')
         token = token.replace("+", "-").replace("/", "_") # trzeba zrobic url safe
         cur.execute("""UPDATE `recovery_tokens` SET `state` = %s WHERE `state` = %s AND `user_id` = %s""", ('expired', 'active', user.id))
@@ -242,8 +247,8 @@ def resetpassword():
         return render_template("reset_password.html", content={}), 400
 
       result = cur.fetchone()
-      user.id = result[1]
-      time = result[3]
+      user.id = result["id"]
+      time = result["gen_time"]
       if (time + timedelta(days=1)) < datetime.now():
         try:
           cur.execute("""UPDATE `recovery_tokens` SET `state` = \'expired\' WHERE `state` = \'active\' AND `token` = %s""", [user.token])
@@ -283,20 +288,75 @@ def user(user):
     flash("Zostałeś wylogowany")
     return redirect("/login")
 
+@app.route("/flashcards")
+def flashcards():
+  if "user" in session:
+    try:
+      cur = mysql.connection.cursor()
+      if request.args.get('search'):
+        results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_name` LIKE %s AND `state` = 'active'""", ['%' + request.args.get('search') + '%'])
+      else:
+        results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `state` = 'active'""")
+    except Exception as ex:
+      return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+    else:
+      result = cur.fetchall()
+      cur.close()
+
+      return render_template("flashcard_sets.html", content={"flashcard_sets": result, "type": "user"}), 200
+  else:
+    flash("Musisz być zalogowany, aby przeglądać zestawy")
+    return redirect("login")
+
 @app.route("/flashcards/<id>")
 def flashcard(id):
-  return f"<p>This is flashcards {id}</p>"
+  if "user" in session:
+    try:
+      cur = mysql.connection.cursor()
+      results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_id` = %s AND `state` = 'active'""", [id])
+    except Exception as ex:
+      return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+    else:
+      if results == 0:
+        cur.close()
+        return render_template("error.html", content={"code": 404, "error": "Not Found"}), 404
+      
+      result1 = cur.fetchone()
+
+      try:
+        results = cur.execute("""SELECT * FROM `flashcard` WHERE `set_id` = %s""", [id])
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+      else:
+        if results == 0:
+          return render_template("error.html", content={"code": 204, "error": "Zestaw jest pusty"}), 204
+
+        result2 = cur.fetchall()
+        cur.close()
+
+        return render_template("flashcard.html", content={"flashcard_sets": result1, "flashcard": result2}), 200
+  else:
+    flash("Musisz być zalogowany, aby przeglądać fiszki")
+    return redirect("login")
 
 @app.route("/flashcards/<id>/create", methods=["POST", "GET"])
 def update(id):
-  if request.method == "POST":
-    return redirect(url_for("/"))
+  if "user" in session:
+    if request.method == "POST":
+      return f"<p>POST This is update {id}</p>"
+    else:
+      return f"<p>GET This is update {id}</p>"
   else:
-    return "<p>This is reset password page GET METHOD</p>"
+    flash("Musisz być zalogowany, aby tworzyć/edytować fiszki")
+    return redirect("login")
 
 @app.route("/learn/<id>")
 def learn(id):
-  return f"<p>This is learn {id}</p>"
+  if "user" in session:
+    return f"<p>GET This is learn {id}</p>"
+  else:
+    flash("Musisz być zalogowany, aby ...")
+    return redirect("login")
 
 @app.route("/dashboard")
 def dashboard():
@@ -328,6 +388,67 @@ def users():
   else:
     return redirect("login")
 
+@app.route("/dashboard/flashcards")
+def flashcardsAdmin():
+  if "user" in session:
+    userData = session["user"]
+    if userData.get("privileges") == 'admin':
+      try:
+        cur = mysql.connection.cursor()
+        if request.args.get('search'):
+          results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_name` LIKE %s""", ['%' + request.args.get('search') + '%'])
+        else:
+          results = cur.execute("""SELECT * FROM `flashcard_sets`""")
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+      else:
+        result = cur.fetchall()
+        cur.close()
+
+        return render_template("flashcard_sets.html", content={"flashcard_sets": result, "type": "admin"}), 200
+    else:
+      return redirect("login")
+  else:
+    return redirect("login")
+
+@app.route("/dashboard/flashcards/<id>/lock")
+def lockFlashcard(id):
+  if "user" in session:
+    userData = session["user"]
+    if userData.get("privileges") == 'admin':
+      try:
+        cur = mysql.connection.cursor()
+        results = cur.execute("""UPDATE `flashcard_sets` SET `state` = 'banned' WHERE `set_id` = %s""", [id])
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect/Upadate ban"}), 500
+      else:
+        mysql.connection.commit()
+        cur.close()
+        return redirect(url_for('flashcardsAdmin'))
+    else:
+      return redirect("login")
+  else:
+    return redirect("login")
+
+@app.route("/dashboard/flashcards/<id>/unlock")
+def unlockFlashcard(id):
+  if "user" in session:
+    userData = session["user"]
+    if userData.get("privileges") == 'admin':
+      try:
+        cur = mysql.connection.cursor()
+        results = cur.execute("""UPDATE `flashcard_sets` SET `state` = 'active' WHERE `set_id` = %s""", [id])
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect/Upadate ban"}), 500
+      else:
+        mysql.connection.commit()
+        cur.close()
+        return redirect(url_for('flashcardsAdmin'))
+    else:
+      return redirect("login")
+  else:
+    return redirect("login")
+
 @app.route("/dashboard/users/<id>/lock")
 def lock(id):
   if "user" in session:
@@ -335,7 +456,7 @@ def lock(id):
     if userData.get("privileges") == 'admin':
       try:
         cur = mysql.connection.cursor()
-        results = cur.execute("""UPDATE `users` SET `status` = %s WHERE `id` = %s""", ("banned", id))
+        results = cur.execute("""UPDATE `users` SET `state` = 'banned' WHERE `id` = %s""", [id])
       except Exception as ex:
         return render_template("error.html", content={"code": 500, "error": "Connect/Upadate ban"}), 500
       else:
@@ -354,7 +475,7 @@ def unlock(id):
     if userData.get("privileges") == 'admin':
       try:
         cur = mysql.connection.cursor()
-        results = cur.execute("""UPDATE `users` SET `status` = %s WHERE `id` = %s""", ("active", id))
+        results = cur.execute("""UPDATE `users` SET `state` = 'active' WHERE `id` = %s""", [id])
       except Exception as ex:
         return render_template("error.html", content={"code": 500, "error": "Connect/Upadate unban"}), 500
       else:

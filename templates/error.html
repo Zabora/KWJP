@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Login Page{% endblock %}
+{% block title %}Error Page{% endblock %}
 {% block content %}
   <br>
   <br>
@@ -8,4 +8,5 @@
   <br>
   <br>
   {% if content.get('code') %}<h1>{{ content.get('code') }}</h1>{% endif %}
+  {% if content.get('error') %}<h1>{{ content.get('error') }}</h1>{% endif %}
 {% endblock %}

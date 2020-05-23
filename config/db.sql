@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `password` varchar(100) NOT NULL,
   `name` varchar(100) DEFAULT NULL,
   `privileges` enum('admin','user') NOT NULL,
-  `status` enum('active','banned') NOT NULL DEFAULT 'active',
+  `state` enum('active','banned') NOT NULL DEFAULT 'active',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -30,6 +30,7 @@ CREATE TABLE IF NOT EXISTS `flashcard_sets` (
   `set_id` int(12) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `set_name` varchar(100) DEFAULT NULL,
+  `state` enum('active','banned') NOT NULL DEFAULT 'active',
   PRIMARY KEY (`set_id`),
   KEY user_id(user_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
