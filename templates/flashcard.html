@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard Page{% endblock %}
+{% block title %}Flashcard Page{% endblock %}
 {% block content %}
   <br>
   <br>
@@ -20,6 +20,42 @@
     </tr>
   </table>
   <br>
+  {% if content.get("edit") %}
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+    Dodaj fiszke
+  </button>
+
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Stwórz fiszke</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form method="POST" action="{{ url_for('update', id=content['flashcard_sets']['set_id'])+'?action=add' }}">
+            <div class="form-group">
+              <label for="flashcard_name" class="col-form-label">Nazwa:</label>
+              <input type="text" name="flashcard_name" class="form-control" id="flashcard_name">
+            </div>
+            <div class="form-group">
+              <label for="answer" class="col-form-label">Odpowiedz:</label>
+              <input type="text" name="answer" class="form-control" id="answer">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Anuluj</button>
+              <button type="submit" class="btn btn-primary">Utwórz</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
   <table border = 1>
     <tr>
       <th>ID</th>
@@ -28,14 +64,92 @@
       <th>ANSWER</th>
     </tr>
     {% for item in content["flashcard"] %}
-    <tr>
+    <tr id="{{item['id']}}">
       <td>{{item["id"]}}</td>
       <td>{{item["set_id"]}}</td>
-      <td>{{item["flashcard_name"]}}</td>
-      <td>{{item["answer"]}}</td>
+      <td class="flashcard_name">{{item["flashcard_name"]}}</td>
+        <td class="answer">{% if content.get("edit") %}{{item["answer"]}}
+          {% else %}
+          <div class="hidden" style="display: none;">{{item["answer"]}}</div>
+          {% endif %}
+        </td>
+      {% if content.get("edit") %}
+      <td>
+        <!-- Button trigger modal -->
+        <button type="button" class="btn btn-primary" id="flashcardButton" onclick="changeId({{item['id']}})">
+          Edytuj fiszke
+        </button>
+      </td>
+    {% else %}
+      <td>
+        <button type="button" class="btn btn-secondary" onclick="showById({{item['id']}})">Pokaż</button>
+      </td>
+    {% endif %}
     </tr>
     {% endfor %}
   </table>
+  <!-- Modal -->
+  <div class="modal fade" id="flashcardModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Stwórz fiszke</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form method="POST" action="{{ url_for('update', id=content['flashcard_sets']['set_id'])+'?action=edit' }}">
+            <div class="form-group">
+              <label for="edit_flashcard_name" class="col-form-label">Nazwa:</label>
+              <input type="text" name="edit_flashcard_name" class="form-control" id="edit_flashcard_name">
+            </div>
+            <div class="form-group">
+              <label for="edit_answer" class="col-form-label">Odpowiedz:</label>
+              <input type="text" name="edit_answer" class="form-control" id="edit_answer">
+            </div>
+            <div class="form-group">
+              <input type="hidden" name="custId" class="form-control" id="custId" value="">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Anuluj</button>
+              <button type="submit" class="btn btn-primary">Edytuj</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
   <br>
-  <a href="{{ url_for('dashboard') }}">Dashboard</a>
+  {% if content["type"] == "admin" %}
+  <a href="{{ url_for('flashcardsAdmin') }}">Wróć</a>
+    {% if content.get("edit") %}
+    <br>
+    <a href="{{ url_for('mylist', user=session['user'].get('name')) }}">Wróć do mojej listy</a>
+    {% endif %}
+  {% elif content.get("edit") %}
+  <a href="{{ url_for('mylist', user=session['user'].get('name')) }}">Wróć do mojej listy</a>
+  {% else %}
+  <a href="{{ url_for('flashcards') }}">Wróć do fiszek</a>
+  {% endif %}
+  <script>
+    function changeId(value) {
+      efn = $('#' + value + ' > .flashcard_name').text()
+      ea = $('#' + value + ' > .answer').text()
+      $('#custId').val(value);
+      $('#edit_flashcard_name').val(efn);
+      $('#edit_answer').val(ea);
+      $('#flashcardModal').modal('toggle');
+    }
+
+    function showById(value) {
+      $('#' + value + ' > .answer > .hidden').toggle();
+      elem = $('#' + value + ' > td > button');
+      if (elem.text() == "Pokaż") {
+        elem.html('Ukryj');
+      } else {
+        elem.html('Pokaż');
+      }
+    }
+  </script>
 {% endblock %}
