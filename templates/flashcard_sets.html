@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Dashboard Page{% endblock %}
+{% block title %}Flashcard Sets Page{% endblock %}
 {% block content %}
   <br>
   <br>
@@ -19,6 +19,38 @@
       </div>
     </div>
   </form>
+  {% if content["type"] != "admin" %}
+  <!-- Button trigger modal -->
+  <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
+    Stwórz nowy zestaw
+  </button>
+
+  <!-- Modal -->
+  <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Stwórz zestaw</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form method="POST" action="{{ request.base_url + '?action=add' }}">
+          <div class="modal-body">
+            <div class="form-group">
+              <label for="set_name" class="col-form-label">Nazwa:</label>
+              <input type="text" name="set_name" class="form-control" id="set_name">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-dismiss="modal">Zamknij</button>
+              <button type="submit" class="btn btn-primary">Utwórz</button>
+            </div>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
   <table border = 1>
     <tr>
       <th>SET_ID</th>
@@ -40,9 +72,54 @@
         <td><a href="{{ url_for('unlockFlashcard', id=item['set_id']) }}">unban</a></td>
         {% endif %}
       {% endif %}
+      {% if content.get("edit") %}
+        <td>
+          <!-- Button trigger modal -->
+          <button type="button" class="btn btn-primary" onclick="changeId({{item['set_id']}})">
+            Usuń
+          </button>
+        </td>
+      {% endif %}
     </tr>
     {% endfor %}
   </table>
+  {% if content.get("edit") %}
+  <!-- Modal -->
+  <div class="modal fade" id="deleteModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLongTitle">Uwaga</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <form method="POST" action="{{ request.base_url + '?action=delete' }}">
+          <div class="modal-body">
+            Usunięcie zestawu jest nieodwracalne. Czy jesteś tego pewien?
+            <div class="form-group">
+              <input type="hidden" name="custId" class="form-control" id="custId" value="">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Anuluj</button>
+            <button type="submit" class="btn btn-secondary">Usuń</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
   <br>
+  {% if content["type"] == "admin" %}
   <a href="{{ url_for('dashboard') }}">Dashboard</a>
+  {% else %}
+  <a href="{{ url_for('user', user=session['user'].get('name')) }}">Wróc do mojej strony</a>
+  {% endif %}
+  <script>
+    function changeId(value) {
+      $('#custId').val(value);
+      $('#deleteModalCenter').modal('toggle');
+    }
+  </script>
 {% endblock %}

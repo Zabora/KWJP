@@ -288,6 +288,87 @@ def user(user):
     flash("Zostałeś wylogowany")
     return redirect("/login")
 
+@app.route("/users/<user>/mylist", methods=["POST", "GET"])
+def mylist(user):
+  if "user" in session:
+    userData = session["user"]
+    if request.method == "POST":
+      if request.args.get('action') == "delete":
+        custId = request.form['custId']
+
+        try:
+          cur = mysql.connection.cursor()
+          results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_id` = %s AND `state` = 'active'""", [custId])
+        except Exception as ex:
+          return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+        else:
+          if results == 0:
+            cur.close()
+            return render_template("error.html", content={"code": 404, "error": "Not Found"}), 404
+          
+          result1 = cur.fetchone()
+
+          if userData.get("id") != result1["user_id"]:
+            return render_template("error.html", content={"code": 403, "error": "Forbidden"}), 403
+
+          try:
+            results = cur.execute("""UPDATE `flashcard_sets` SET `state` = 'banned' WHERE `set_id` = %s""", [custId])
+          except Exception as ex:
+            return render_template("error.html", content={"code": 500, "error": "Connect/Upadate ban"}), 500
+          else:
+            mysql.connection.commit()
+            cur.close()
+            return redirect(url_for("mylist", user=userData.get("name")))
+      elif request.args.get('action') == "add":
+        setName = request.form['set_name']
+
+        # name conajmniej 3 litery, max 100
+        if len(setName) < 3 or len(setName) > 100:
+          try:
+            cur = mysql.connection.cursor()
+            if request.args.get('search'):
+              results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_name` LIKE %s AND `state` = 'active' AND `user_id` = %s""", \
+                ('%' + request.args.get('search') + '%', userData.get("id")))
+            else:
+              results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `state` = 'active' AND `user_id` = %s""", [userData.get("id")])
+          except Exception as ex:
+            return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+          else:
+            result = cur.fetchall()
+            cur.close()
+            flash("Nazwa musi zawierać conajmniej 3 znaki i maksymalnie 100")
+            return render_template("flashcard_sets.html", content={"flashcard_sets": result, "type": "user", "edit": True}), 404
+
+        try:
+          cur = mysql.connection.cursor()
+          cur.execute("""INSERT INTO flashcard_sets(`user_id`, `set_name`) VALUES(%s, %s)""", (userData.get("id"), setName))
+        except Exception as ex:
+          return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+        else:
+          mysql.connection.commit()
+          cur.close()
+          return redirect(url_for("mylist", user=userData.get("name")))
+      else:
+          return render_template("error.html", content={"code": 401, "error": "Unauthorized"}), 401
+    else:
+      try:
+        cur = mysql.connection.cursor()
+        if request.args.get('search'):
+          results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_name` LIKE %s AND `state` = 'active' AND `user_id` = %s""", \
+            ('%' + request.args.get('search') + '%', userData.get("id")))
+        else:
+          results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `state` = 'active' AND `user_id` = %s""", [userData.get("id")])
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+      else:
+        result = cur.fetchall()
+        cur.close()
+
+        return render_template("flashcard_sets.html", content={"flashcard_sets": result, "type": "user", "edit": True}), 200
+  else:
+    flash("Musisz być zalogowany, aby przeglądać zestawy")
+    return redirect("login")
+
 @app.route("/flashcards")
 def flashcards():
   if "user" in session:
@@ -311,17 +392,22 @@ def flashcards():
 @app.route("/flashcards/<id>")
 def flashcard(id):
   if "user" in session:
+    userData = session["user"]
+    user.id = userData.get('id')
     try:
       cur = mysql.connection.cursor()
       results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_id` = %s AND `state` = 'active'""", [id])
     except Exception as ex:
       return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
     else:
-      if results == 0:
+      if results == 0 and userData.get("privileges") != 'admin':
         cur.close()
         return render_template("error.html", content={"code": 404, "error": "Not Found"}), 404
       
       result1 = cur.fetchone()
+
+      if userData.get("privileges") != 'admin' and user.id == result1["user_id"]:
+        return redirect(url_for("update", id=id))
 
       try:
         results = cur.execute("""SELECT * FROM `flashcard` WHERE `set_id` = %s""", [id])
@@ -334,7 +420,10 @@ def flashcard(id):
         result2 = cur.fetchall()
         cur.close()
 
-        return render_template("flashcard.html", content={"flashcard_sets": result1, "flashcard": result2}), 200
+        if userData.get("privileges") == 'admin':
+          return render_template("flashcard.html", content={"flashcard_sets": result1, "flashcard": result2, "type": "admin"}), 200
+        else:
+          return render_template("flashcard.html", content={"flashcard_sets": result1, "flashcard": result2, "type": "user"}), 200
   else:
     flash("Musisz być zalogowany, aby przeglądać fiszki")
     return redirect("login")
@@ -342,10 +431,79 @@ def flashcard(id):
 @app.route("/flashcards/<id>/create", methods=["POST", "GET"])
 def update(id):
   if "user" in session:
+    userData = session["user"]
+    user.id = userData.get('id')
     if request.method == "POST":
-      return f"<p>POST This is update {id}</p>"
+      try:
+        cur = mysql.connection.cursor()
+        results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_id` = %s AND `state` = 'active'""", [id])
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+      else:
+        if results == 0:
+          cur.close()
+          return render_template("error.html", content={"code": 404, "error": "Not Found"}), 404
+        
+        result1 = cur.fetchone()
+
+        if user.id != result1["user_id"]:
+          return render_template("error.html", content={"code": 403, "error": "Forbidden"}), 403
+
+        if request.args.get('action') == "edit":
+          flashcard_name = request.form['edit_flashcard_name']
+          answer = request.form['edit_answer']
+          custId = request.form['custId']
+
+          try:
+            cur.execute("""UPDATE `flashcard` SET `flashcard_name` = %s, `answer` = %s WHERE `id` = %s""", (flashcard_name, answer, custId))
+          except Exception as ex:
+            return render_template("error.html", content={"code": 500, "error": "Connect/Update"}), 500
+          else:
+            mysql.connection.commit()
+            cur.close()
+            return redirect(request.base_url)
+        elif request.args.get('action') == "add":
+          flashcard_name = request.form['flashcard_name']
+          answer = request.form['answer']
+
+          try:
+            cur.execute("""INSERT INTO flashcard(`set_id`, `flashcard_name`, `answer`) VALUES(%s, %s, %s)""", (id, flashcard_name, answer))
+          except Exception as ex:
+            return render_template("error.html", content={"code": 500, "error": "Connect/Duplicate"}), 500
+          else:
+            mysql.connection.commit()
+            cur.close()
+            return redirect(request.base_url)
+        else:
+          return render_template("error.html", content={"code": 401, "error": "Unauthorized"}), 401
     else:
-      return f"<p>GET This is update {id}</p>"
+      try:
+        cur = mysql.connection.cursor()
+        results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_id` = %s AND `state` = 'active'""", [id])
+      except Exception as ex:
+        return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+      else:
+        if results == 0:
+          cur.close()
+          return render_template("error.html", content={"code": 404, "error": "Not Found"}), 404
+        
+        result1 = cur.fetchone()
+
+        if user.id != result1["user_id"]:
+          return render_template("error.html", content={"code": 403, "error": "Forbidden"}), 403
+
+        try:
+          results = cur.execute("""SELECT * FROM `flashcard` WHERE `set_id` = %s""", [id])
+        except Exception as ex:
+          return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+        else:
+          result2 = cur.fetchall()
+          cur.close()
+
+          if userData.get("privileges") == 'admin':
+            return render_template("flashcard.html", content={"flashcard_sets": result1, "flashcard": result2, "edit": True, "type": "admin"}), 200
+          else:
+            return render_template("flashcard.html", content={"flashcard_sets": result1, "flashcard": result2, "edit": True, "type": "user"}), 200
   else:
     flash("Musisz być zalogowany, aby tworzyć/edytować fiszki")
     return redirect("login")
