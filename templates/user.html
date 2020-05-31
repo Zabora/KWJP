@@ -17,9 +17,7 @@
       <td>{{content.get('state')}}</td>
     </tr>
   </table>
-  <a href="/logout">Wyloguj</a>
+  <a href="/logout">Logout</a>
   <br>
-  <a href="/flashcards">Zestawy fiszek</a>
-  <br>
-  <a href="{{ url_for('mylist', user=content.get('name')) }}">Moje zestawy</a>
+  <a href="/flashcards">Flashcards</a>
 {% endblock %}

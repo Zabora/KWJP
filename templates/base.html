@@ -1,12 +1,21 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html>
   <head style="background-color: antiquewhite;">
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}{% endblock %}</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" 
     integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
-    <link rel="stylesheet" href="/assets/styles.css" />
+    <link rel="stylesheet" href="assets/styles.css" />
+    
+
+    <style>
+      html,body{
+        height: 100%
+      }
+
+    </style>
+    
+
+
   </head>
   <body>
     {% block content %}{% endblock %}
@@ -30,6 +39,6 @@
       </div>
     </nav>
     
-    <footer class="footer bg-black small text-center text-black-50"><div class="container">Copyright © Your Website 2020</div></footer>
+    <footer class="footer bg-black small text-center text-black-50 navbar-fixed-bottom"><div class="container">Copyright © Your Website 2020</div></footer>
   </body>
 </html>
