@@ -3,6 +3,6 @@
 konieczne moduły:
 
 yaml
-mysqlclient
+mysqlclient (+ baza danych; konfiguracja w config/db.sql, poświadczenia do zmiany w config/db.yaml)
 flask
 pycryptodomex
