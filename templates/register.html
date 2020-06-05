@@ -209,7 +209,7 @@ input[type=password]:placeholder {
     <br>
     <br>
     <br>
-    <h1>Logowanie</h1>
+    <h1>Rejestracja</h1>
     <p class="lead">Klik klik klik</p>
       <br>
     <br>
@@ -219,6 +219,7 @@ input[type=password]:placeholder {
     <br>
     <br>
     <br>
+    
     </div>
   </header>
   
@@ -239,9 +240,21 @@ input[type=password]:placeholder {
     
     
         <br>
+        {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        {% for msg in messages %}
+          <p>{{msg}}</p>
+          <!-- <p><a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" class="btn btn-primary js-scroll-trigger" href="/login">Logowanie</a></p>
+          <p><a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" class="btn btn-primary js-scroll-trigger" href="/recovery">Zresetuj hasło</a></p> -->
+          <br>
+        {% endfor %}
+      {% endif %}
+    {% endwith %} 
+        
     
         <!-- Login Form -->
         <form method="POST" action="">
+          
           <input type="text" name="name" placeholder="Imię" value="{% if content.get('name') %}{{ content.get('name') }}{% endif %}">
           <input type="text" name="email" placeholder="E-mail" value="{% if content.get('email') %}{{ content.get('email') }}{% endif %}">
           <input type="password" name="password" placeholder="Hasło">
@@ -251,7 +264,7 @@ input[type=password]:placeholder {
     
         <!-- Remind Passowrd -->
         <div id="formFooter">
-          <a class="underlineHover" href="#">Resetuj Hasło</a>
+          <a class="underlineHover" href="/recovery">Resetuj Hasło</a>
         </div>
     
       </div>

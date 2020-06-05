@@ -25,6 +25,7 @@
   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
     Dodaj fiszke
   </button>
+  
 
   <!-- Modal -->
   <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
@@ -56,6 +57,8 @@
     </div>
   </div>
   {% endif %}
+  <a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" class="btn btn-primary js-scroll-trigger" href="{{ url_for('learn', id=content['flashcard_sets']['set_id']) }}">ucz się</a>
+  <a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" class="btn btn-primary js-scroll-trigger" href="{{ url_for('learn1', id=content['flashcard_sets']['set_id']) }}">ucz się pojedynczo</a>
   <table border = 1>
     <tr>
       <th>ID</th>
