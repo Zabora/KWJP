@@ -2,7 +2,10 @@
 
 konieczne moduły:
 
-yaml
+pyyaml
 mysqlclient
+flask_mysqldb
 flask
 pycryptodomex
+flask_bcrypt
+flask_mail
