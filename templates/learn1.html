@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}User Page{% endblock %}
+{% block content %}
+hgtrhtsrhrthrtdhtrdhdrthdr
+  <table border = 1>
+    <tr>
+      <th>set_id</th>
+    </tr>
+    <tr>
+      <td>{{content.get('set_id')}}</td>
+  </table>
+  <br>
+  <br>
+  <br>
+  <table border = 1>
+    <tr>
+      <th>ID</th>
+      <th>SET_ID</th>
+      <th>FLASHCARD_NAME</th>
+      <th>ANSWER</th>
+    </tr>
+    {% for item in content["flashcard"] %}
+    <tr id="{{item['id']}}">
+      <td>{{item["id"]}}</td>
+      <td>{{item["set_id"]}}</td>
+      <td class="flashcard_name">{{item["flashcard_name"]}}</td>
+      <td class="answer">
+        {% if content.get("edit") %}{{item["answer"]}}
+        {% else %}
+        <div class="hidden" style="display: none;">{{item["answer"]}}</div>
+        {% endif %}
+      </td>
+      <td>
+        <form>
+          <input id="choose" name="i_like" required pattern='{{item["answer"]}}''>
+          <button>Submit</button>
+        </form>
+      </td>
+      {% if content.get("edit") %}
+      <td>
+      </td>
+      {% else %}
+      <td>
+        <button type="button" class="btn btn-secondary" onclick="showById({{item['id']}})">Pokaż</button>
+      </td>
+      {% endif %}
+    </tr>
+    {% endfor %}
+  </table>
+  <script>
+    function changeId(value) {
+      efn = $('#' + value + ' > .flashcard_name').text()
+      ea = $('#' + value + ' > .answer').text()
+      $('#custId').val(value);
+      $('#edit_flashcard_name').val(efn);
+      $('#edit_answer').val(ea);
+      $('#flashcardModal').modal('toggle');
+    }
+
+    function showById(value) {
+      $('#' + value + ' > .answer > .hidden').toggle();
+      elem = $('#' + value + ' > td > button');
+      if (elem.text() == "Pokaż") {
+        elem.html('Ukryj');
+      } else {
+        elem.html('Pokaż');
+      }
+    }
+  </script>
+
+  <style>
+    input:invalid {
+      border: 2px dashed red;
+    }
+
+    input:valid {
+      border: 2px solid black;
+    }
+  </style>
+{% endblock %}

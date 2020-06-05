@@ -7,6 +7,8 @@ from datetime import datetime, timedelta
 from base64 import b64encode
 import yaml
 import re
+import random
+import sys
 
 app = Flask(__name__, static_folder='assets')
 
@@ -63,10 +65,12 @@ def login():
     if not user.email or not user.password:
       flash("Wszystkie pola są wymagane")
       return render_template("login.html", content={}), 400
+
     # walidacja email, specyfikacja HTML5
     if not re.match(emailRegex, user.email):
       flash(f"Email ma nieprawidłowy format\n{emailRegexMsg}")
       return render_template("login.html", content={}), 400
+
     # walidacja hasła
     if not re.match(passwordRegex, user.password):
       flash(f"Hasło ma nieprawidłowy format\n{passwordRegexMsg}")
@@ -102,7 +106,7 @@ def login():
         if result["privileges"] == 'admin':
           return redirect('/dashboard')
         else:
-          return redirect(f'users/{result["name"]}')
+          return redirect('/userpage')
       else:
         flash("Hasło lub email są niepoprawne")
         return render_template("login.html", content={"email": user.email}), 400
@@ -112,7 +116,7 @@ def login():
       if userData.get("privileges") == 'admin':
         return redirect('/dashboard')
       else:
-        return redirect(f"/users/{userData.get('name')}")
+        return redirect('/userpage')
     else:
       return render_template("login.html", content={}), 200
 
@@ -128,18 +132,24 @@ def register():
     if not user.name or not user.email or not user.password or not user.repassword:
       flash("Wszystkie pola muszą być wypełnione")
       return render_template("register.html", content={"email": user.email, "name": user.name}), 400
+
     # name conajmniej 3 litery, max 32
     if len(user.name) < 3 or len(user.name) > 32:
       flash("Nazwa musi zawierać conajmniej 3 znaki i maksymalnie 32")
       return render_template("register.html", content={"email": user.email, "name": user.name}), 400
+
     # walidacja email, specyfikacja HTML5
     if not re.match(emailRegex, user.email):
-      flash(f"Email ma niepoprawny format\n{emailRegexMsg}")
+      # flash(f"Email ma niepoprawny format\n{emailRegexMsg}")
+      flash(f"\n{emailRegexMsg}")
       return render_template("register.html", content={"email": user.email, "name": user.name}), 400
+
     # walidacja hasła
     if not re.match(passwordRegex, user.password):
-      flash(f"Hasło ma niepoprawny format\n{passwordRegexMsg}")
+      # flash(f"Hasło ma niepoprawny format\n{passwordRegexMsg}")
+      flash(f"\n{passwordRegexMsg}")
       return render_template("register.html", content={"email": user.email, "name": user.name}), 400
+
     # sprawdzenie czy hasła są takie same
     if user.password != user.repassword:
       flash("Hasła muszą być takie same")
@@ -154,7 +164,7 @@ def register():
       if results != 0:
         cur.close()
         # Powinno się mówić, że takiego email nie ma w bazie, czy udawać że jest?
-        flash("Email jest już zajęty")
+        flash("Email jest już zajęty, zaluguj się lub też zresetuj hasło", "info")
         return render_template("register.html", content={}), 400
       
       try:
@@ -165,7 +175,9 @@ def register():
       else:
         mysql.connection.commit()
         cur.close()
-        return redirect('/login')
+        flash("Dziękujemy za rejestrację, proszę sie zalogować:", "info")
+        # return redirect('/login')
+        return redirect(url_for('login'))
   else:
     return render_template("register.html", content={}), 400
 
@@ -276,22 +288,24 @@ def resetpassword():
     else:
       return render_template("reset_password.html", content={}), 200
 
-@app.route("/users/<user>")
-def user(user):
+@app.route("/userpage")
+# def user(user):
+def user():
+  userData = session["user"]
   if "user" in session:
-    userData = session["user"]
-    if userData.get("name") != user:
-      return redirect(f"/users/{userData.get('name')}")
+    # if userData.get("name") != user:
+    #   return redirect(url_for('userpage'))
     
     return render_template("user.html", content=userData), 200
   else:
     flash("Zostałeś wylogowany")
     return redirect("/login")
 
-@app.route("/users/<user>/mylist", methods=["POST", "GET"])
-def mylist(user):
+@app.route("/userpage/mylist", methods=["POST", "GET"])
+def mylist():
+  userData = session["user"]
   if "user" in session:
-    userData = session["user"]
+    # userData = session["user"]
     if request.method == "POST":
       if request.args.get('action') == "delete":
         custId = request.form['custId']
@@ -508,10 +522,61 @@ def update(id):
     flash("Musisz być zalogowany, aby tworzyć/edytować fiszki")
     return redirect("login")
 
-@app.route("/learn/<id>")
+@app.route("/learn/<id>", methods=["POST", "GET"])
 def learn(id):
   if "user" in session:
-    return f"<p>GET This is learn {id}</p>"
+    userData = session["user"]
+    # nwm = session["id"]
+    # setData = id
+    try:
+      cur = mysql.connection.cursor()
+      
+      results = cur.execute("""SELECT * FROM `flashcard` WHERE `set_id` = %s""", {id})
+      
+    except Exception as ex:
+      return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+    else:
+      result = cur.fetchall()
+      cur.close()
+
+      if results == 0:
+          return render_template("error.html", content={"code": 204, "error": "Zestaw jest pusty"}), 204
+        
+      return render_template("learn.html", content={"set_id": id, "flashcard": result}), 200
+
+      # return render_template("learn.html", content={"set_id": id}), 200
+      # return render_template("flashcard_sets.html", content={"flashcard_sets": result, "type": "user", "edit": True}), 200
+      # return f"{results}"
+
+    # return f"<p>GET This is learn {id}</p>"
+  else:
+    flash("Musisz być zalogowany, aby ...")
+    return redirect("login")
+
+@app.route("/learn/<id>/1", methods=["POST", "GET"])
+def learn1(id):
+  if "user" in session:
+
+
+    userData = session["user"]
+    try:
+      cur = mysql.connection.cursor()
+      
+      results = cur.execute("""SELECT * FROM `flashcard` WHERE `set_id` = %s ORDER BY RAND() LIMIT 1""", {id})
+      
+    except Exception as ex:
+      return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+    else:
+      all_flashcards = cur.fetchall()
+      cur.close()
+
+      if results == 0:
+          return render_template("error.html", content={"code": 204, "error": "Zestaw jest pusty"}), 204
+      print(all_flashcards, file=sys.stderr)
+      print(all_flashcards[0]['answer'], file=sys.stderr)
+      
+      return render_template("learn1.html", content={"set_id": id, "flashcard": all_flashcards}), 200
+
   else:
     flash("Musisz być zalogowany, aby ...")
     return redirect("login")
