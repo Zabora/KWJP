@@ -188,7 +188,7 @@ def recovery():
 
     # Walidacja email
     if not re.match(emailRegex, user.email):
-      flash(f"Email ma niepoprawny format\n{emailRegexMsg}")
+      flash(f"\n{emailRegexMsg}")
       return render_template("recovery.html", content={"email": user.email}), 400
     
     # Tu chyba przyda się stworzyć Thread żeby klient nie czekał
@@ -259,7 +259,7 @@ def resetpassword():
         return render_template("reset_password.html", content={}), 400
 
       result = cur.fetchone()
-      user.id = result["id"]
+      user.id = result["user_id"]
       time = result["gen_time"]
       if (time + timedelta(days=1)) < datetime.now():
         try:
@@ -577,6 +577,37 @@ def learn1(id):
       
       return render_template("learn1.html", content={"set_id": id, "flashcard": all_flashcards}), 200
 
+  else:
+    flash("Musisz być zalogowany, aby ...")
+    return redirect("login")
+
+@app.route("/learn/<id>/2", methods=["POST", "GET"])
+def learn2(id):
+  if "user" in session:
+    userData = session["user"]
+    # nwm = session["id"]
+    # setData = id
+    try:
+      cur = mysql.connection.cursor()
+      
+      results = cur.execute("""SELECT * FROM `flashcard` WHERE `set_id` = %s ORDER BY RAND()""", {id})
+      
+    except Exception as ex:
+      return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+    else:
+      result = cur.fetchall()
+      cur.close()
+
+      if results == 0:
+          return render_template("error.html", content={"code": 204, "error": "Zestaw jest pusty"}), 204
+        
+      return render_template("learn2.html", content={"set_id": id, "flashcard": result}), 200
+
+      # return render_template("learn.html", content={"set_id": id}), 200
+      # return render_template("flashcard_sets.html", content={"flashcard_sets": result, "type": "user", "edit": True}), 200
+      # return f"{results}"
+
+    # return f"<p>GET This is learn {id}</p>"
   else:
     flash("Musisz być zalogowany, aby ...")
     return redirect("login")

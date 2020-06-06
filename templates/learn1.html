@@ -32,8 +32,8 @@ hgtrhtsrhrthrtdhtrdhdrthdr
       </td>
       <td>
         <form>
-          <input id="choose" name="i_like" required pattern='{{item["answer"]}}''>
-          <button>Submit</button>
+          <input id="choose" name="i_like" required pattern='{{item["answer"]}}' placeholder="Odpowiedź" autofocus title='Błędna odpowiedź'>
+          <button>Następna</button>
         </form>
       </td>
       {% if content.get("edit") %}
@@ -41,7 +41,7 @@ hgtrhtsrhrthrtdhtrdhdrthdr
       </td>
       {% else %}
       <td>
-        <button type="button" class="btn btn-secondary" onclick="showById({{item['id']}})">Pokaż</button>
+        <button type="button" class="btn btn-secondary" onclick="showById( {{item['id']}} )">Podpowiedź</button>
       </td>
       {% endif %}
     </tr>
@@ -69,12 +69,12 @@ hgtrhtsrhrthrtdhtrdhdrthdr
   </script>
 
   <style>
-    input:invalid {
+    /* input:invalid {
       border: 2px dashed red;
     }
 
     input:valid {
       border: 2px solid black;
-    }
+    } */
   </style>
 {% endblock %}

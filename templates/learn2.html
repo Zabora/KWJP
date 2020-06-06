@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block title %}User Page{% endblock %}
+{% block content %}
+  <table border = 1>
+    <tr>
+      <th>set_id</th>
+    </tr>
+    <tr>
+      <td>{{content.get('set_id')}}</td>
+  </table>
+  <br>
+  <br>
+  <br>
+  <form>
+  <table border = 1>
+    <tr>
+      <th>ID</th>
+      <th>SET_ID</th>
+      <th>FLASHCARD_NAME</th>
+      <th>ANSWER</th>
+    </tr>
+
+    {% for item in content["flashcard"] %}
+      <tr id="{{item['id']}}">
+        <td>{{item["id"]}}</td>
+        <td>{{item["set_id"]}}</td>
+        <td class="flashcard_name">{{item["flashcard_name"]}}</td>
+          <td class="answer">
+            {% if content.get("edit") %}
+              {{item["answer"]}}
+            {% else %}
+              <div class="hidden" style="display: none;">{{item["answer"]}}</div>
+            {% endif %}
+          </td>
+        {% if content.get("edit") %}
+          <td>
+            <!-- Button trigger modal -->
+        
+          </td>
+        {% else %}
+          <td>
+            <label for="answer">Wybierz odpowiedź</label>
+            <select required id="answer">
+              {% for item2 in content["flashcard"] %}
+
+                {% if item2["answer"] == item["answer"] %}
+                  <option value="1">{{item2["answer"]}}</option>
+                {% else %}
+                  <option value="">{{item2["answer"]}}</option>
+                {% endif %}
+
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <button type="button" class="btn btn-secondary" onclick="showById({{item['id']}})">Pokaż</button>
+          </td>
+        {% endif %}
+      </tr>
+    {% endfor %}
+  </table>
+  <button>
+    Sprawdź
+  </button>
+  </form>
+  <script>
+    function changeId(value) {
+      efn = $('#' + value + ' > .flashcard_name').text()
+      ea = $('#' + value + ' > .answer').text()
+      $('#custId').val(value);
+      $('#edit_flashcard_name').val(efn);
+      $('#edit_answer').val(ea);
+      $('#flashcardModal').modal('toggle');
+    }
+
+    function showById(value) {
+      $('#' + value + ' > .answer > .hidden').toggle();
+      elem = $('#' + value + ' > td > button');
+      if (elem.text() == "Pokaż") {
+        elem.html('Ukryj');
+      } else {
+        elem.html('Pokaż');
+      }
+    }
+  </script>
+{% endblock %}
