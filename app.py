@@ -48,6 +48,12 @@ bcrypt = Bcrypt(app)
 
 @app.route("/")
 def home():
+  
+  if "user" in session:
+    userData = session["user"]
+    return render_template("index.html", content=userData), 200
+  else:
+    return render_template("index.html", content={}), 200
   return render_template("index.html")
 
 @app.route("/logout")
@@ -298,7 +304,7 @@ def user():
     
     return render_template("user.html", content=userData), 200
   else:
-    flash("Zostałeś wylogowany")
+    flash("Jesteś wylogowany")
     return redirect("/login")
 
 @app.route("/userpage/mylist", methods=["POST", "GET"])

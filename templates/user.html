@@ -1,26 +1,23 @@
-{% extends "base.html" %}
+{% extends "otherbase.html" %}
 {% block title %}User Page{% endblock %}
 {% block content %}
-  <table border = 1>
-    <tr>
-      <th>ID</th>
-      <th>EMAIL</th>
-      <th>NAME</th>
-      <th>PRIVILEGES</th>
-      <th>STATE</th>
-    </tr>
-    <tr>
-      <td>{{content.get('id')}}</td>
-      <td>{{content.get('email')}}</td>
-      <td>{{content.get('name')}}</td>
-      <td>{{content.get('privileges')}}</td>
-      <td>{{content.get('state')}}</td>
-    </tr>
-  </table>
   <br>
-  <a href="/logout">Wyloguj</a>
   <br>
-  <a href="/flashcards">Zestawy fiszek</a>
+  <h1 class="mt-4">Witaj {{content.get('name')}}!</h1>
+  
   <br>
-  <a href="{{ url_for('mylist', user=content.get('name')) }}">Moje zestawy</a>
+  <a>Twój id: {{content.get('id')}}</a><br>
+  <a>Twój e-mail: {{content.get('email')}}</a><br>
+  {% if content.get("privileges") == 'admin' %}
+    <a>Czy jesteś adminem: {{content.get('privileges')}}</a>
+    <a href="/dashboard">Dashboard</a><br>
+  {% endif %}
+  <a>Twój status: {{content.get('state')}}</a>
+
+  <style>
+    a {
+      color: #525252;
+    }
+  </style>
+
 {% endblock %}

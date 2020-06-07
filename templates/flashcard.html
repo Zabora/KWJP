@@ -1,30 +1,24 @@
-{% extends "base.html" %}
+{% extends "otherbase.html" %}
 {% block title %}Flashcard Page{% endblock %}
 {% block content %}
   <br>
+  <h1 class="mt-4">{{content["flashcard_sets"]["set_name"]}}</h1>
+  <a>Id zestawu: {{content["flashcard_sets"]["set_id"]}}</a><br>
+  <a>Id właściciela: {{content["flashcard_sets"]["user_id"]}}</a><br>
   <br>
-  <br>
-  <br>
-  <br>
-  <br>
-  <table border = 1>
-    <tr>
-      <th>SET_ID</th>
-      <th>USER_ID</th>
-      <th>SET_NAME</th>
-    </tr>
-    <tr>
-      <td>{{content["flashcard_sets"]["set_id"]}}</td>
-      <td>{{content["flashcard_sets"]["user_id"]}}</td>
-      <td>{{content["flashcard_sets"]["set_name"]}}</td>
-    </tr>
-  </table>
-  <br>
+
   {% if content.get("edit") %}
   <!-- Button trigger modal -->
+  <div class="container">
+    <div class="row">
+      <div class="col-6">
   <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#exampleModalCenter">
     Dodaj fiszke
   </button>
+  </div>
+  </div>
+  </div>
+
   
 
   <!-- Modal -->
@@ -57,19 +51,31 @@
     </div>
   </div>
   {% endif %}
-  <a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" class="btn btn-primary js-scroll-trigger" href="{{ url_for('learn', id=content['flashcard_sets']['set_id']) }}">ucz się</a>
-  <a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" class="btn btn-primary js-scroll-trigger" href="{{ url_for('learn1', id=content['flashcard_sets']['set_id']) }}">ucz się pojedynczo</a>
-  <table border = 1>
+  <div class="container">
+    <div class="row">
+      <div class="col-6">
+  <a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" class="btn btn-primary js-scroll-trigger" href="{{ url_for('learn', id=content['flashcard_sets']['set_id']) }}">Ucz się</a>
+  <a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" class="btn btn-primary js-scroll-trigger" href="{{ url_for('learn1', id=content['flashcard_sets']['set_id']) }}">Ucz się pojedynczo</a>
+  <a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" class="btn btn-primary js-scroll-trigger" href="{{ url_for('learn2', id=content['flashcard_sets']['set_id']) }}">Ucz się - wybór</a>
+  </div>
+  </div>
+  </div>
+
+
+  <br>
+  <div class="container">
+    <div class="row">
+      <div class="col-6">
+        <table class="table">
+          <thead>
     <tr>
-      <th>ID</th>
-      <th>SET_ID</th>
-      <th>FLASHCARD_NAME</th>
-      <th>ANSWER</th>
+      <th>Fiszka</th>
+      <th>Odpowiedź</th>
     </tr>
+  </thead>
+  <tbody>
     {% for item in content["flashcard"] %}
     <tr id="{{item['id']}}">
-      <td>{{item["id"]}}</td>
-      <td>{{item["set_id"]}}</td>
       <td class="flashcard_name">{{item["flashcard_name"]}}</td>
         <td class="answer">{% if content.get("edit") %}{{item["answer"]}}
           {% else %}
@@ -90,7 +96,20 @@
     {% endif %}
     </tr>
     {% endfor %}
+  </tbody>
   </table>
+</div>
+<div class="col-6">
+
+</div>
+</div>
+</div>
+
+
+
+
+
+
   <!-- Modal -->
   <div class="modal fade" id="flashcardModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered" role="document">
@@ -130,10 +149,6 @@
     <br>
     <a href="{{ url_for('mylist', user=session['user'].get('name')) }}">Wróć do mojej listy</a>
     {% endif %}
-  {% elif content.get("edit") %}
-  <a href="{{ url_for('mylist', user=session['user'].get('name')) }}">Wróć do mojej listy</a>
-  {% else %}
-  <a href="{{ url_for('flashcards') }}">Wróć do fiszek</a>
   {% endif %}
   <script>
     function changeId(value) {
