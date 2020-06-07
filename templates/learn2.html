@@ -1,37 +1,37 @@
-{% extends "base.html" %}
-{% block title %}User Page{% endblock %}
+{% extends "otherbase.html" %}
+{% block title %}Fiszkowanie{% endblock %}
 {% block content %}
-  <table border = 1>
+<br>
+<h1 class="mt-4">{{content["flashcard_sets"]["set_name"]}}</h1>
+<br>
+<a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" 
+    class="btn btn-primary js-scroll-trigger" href="{{ url_for('flashcard', id=content['flashcard_sets']['set_id']) }}">Wróć
+  </a>
+<br>
+<br>
+
+
+<form>
+<div class="container">
+  <div class="row">
+    <div class="col-9">
+<table class="table">
     <tr>
-      <th>set_id</th>
-    </tr>
-    <tr>
-      <td>{{content.get('set_id')}}</td>
-  </table>
-  <br>
-  <br>
-  <br>
-  <form>
-  <table border = 1>
-    <tr>
-      <th>ID</th>
-      <th>SET_ID</th>
-      <th>FLASHCARD_NAME</th>
-      <th>ANSWER</th>
+      <th>#</th>
+      <th>Fiszka</th>
+      <th>
+        <button class="btn btn-secondary">
+          Odpowiedzi - Sprawdź
+        </button>
+      </th>
+      <th>Podpowiedź</th>
+      <th></th>
     </tr>
 
     {% for item in content["flashcard"] %}
       <tr id="{{item['id']}}">
         <td>{{item["id"]}}</td>
-        <td>{{item["set_id"]}}</td>
         <td class="flashcard_name">{{item["flashcard_name"]}}</td>
-          <td class="answer">
-            {% if content.get("edit") %}
-              {{item["answer"]}}
-            {% else %}
-              <div class="hidden" style="display: none;">{{item["answer"]}}</div>
-            {% endif %}
-          </td>
         {% if content.get("edit") %}
           <td>
             <!-- Button trigger modal -->
@@ -39,7 +39,7 @@
           </td>
         {% else %}
           <td>
-            <label for="answer">Wybierz odpowiedź</label>
+            <label for="answer">Wybierz odpowiedź   </label>
             <select required id="answer">
               {% for item2 in content["flashcard"] %}
 
@@ -52,6 +52,13 @@
               {% endfor %}
             </select>
           </td>
+          <td class="answer">
+            {% if content.get("edit") %}
+              {{item["answer"]}}
+            {% else %}
+              <div class="hidden" style="display: none;">{{item["answer"]}}</div>
+            {% endif %}
+          </td>
           <td>
             <button type="button" class="btn btn-secondary" onclick="showById({{item['id']}})">Pokaż</button>
           </td>
@@ -59,9 +66,14 @@
       </tr>
     {% endfor %}
   </table>
-  <button>
+  <button class="btn btn-secondary">
     Sprawdź
   </button>
+</div>
+</div>
+</div>
+
+  
   </form>
   <script>
     function changeId(value) {

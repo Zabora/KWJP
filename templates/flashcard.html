@@ -26,7 +26,7 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
       <div class="modal-content">
         <div class="modal-header">
-          <h5 class="modal-title" id="exampleModalLongTitle">Stwórz fiszke</h5>
+          <h5 class="modal-title" id="exampleModalLongTitle">Stwórz fiszkę</h5>
           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
             <span aria-hidden="true">&times;</span>
           </button>
@@ -71,6 +71,7 @@
     <tr>
       <th>Fiszka</th>
       <th>Odpowiedź</th>
+      <th></th>
     </tr>
   </thead>
   <tbody>
@@ -86,7 +87,7 @@
       <td>
         <!-- Button trigger modal -->
         <button type="button" class="btn btn-primary" id="flashcardButton" onclick="changeId({{item['id']}})">
-          Edytuj fiszke
+          Edytuj fiszkę
         </button>
       </td>
     {% else %}

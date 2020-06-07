@@ -1,40 +1,43 @@
-{% extends "base.html" %}
-{% block title %}User Page{% endblock %}
+{% extends "otherbase.html" %}
+{% block title %}Fiszkowanie{% endblock %}
 {% block content %}
-hgtrhtsrhrthrtdhtrdhdrthdr
-  <table border = 1>
+<br>
+<h1 class="mt-4">{{content["flashcard_sets"]["set_name"]}}</h1>
+<br>
+<a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" 
+    class="btn btn-primary js-scroll-trigger" href="{{ url_for('flashcard', id=content['flashcard_sets']['set_id']) }}">Wróć
+  </a>
+<br>
+<br>
+
+
+
+<div class="container">
+  <div class="row">
+    <div class="col-9">
+<table class="table">
     <tr>
-      <th>set_id</th>
-    </tr>
-    <tr>
-      <td>{{content.get('set_id')}}</td>
-  </table>
-  <br>
-  <br>
-  <br>
-  <table border = 1>
-    <tr>
-      <th>ID</th>
-      <th>SET_ID</th>
-      <th>FLASHCARD_NAME</th>
-      <th>ANSWER</th>
+      <th>#</th>
+      <th>Fiszka</th>
+      <th>Odpowiedź</th>
+      <th>Podpowiedź</th>
+      <th></th>
     </tr>
     {% for item in content["flashcard"] %}
     <tr id="{{item['id']}}">
       <td>{{item["id"]}}</td>
-      <td>{{item["set_id"]}}</td>
       <td class="flashcard_name">{{item["flashcard_name"]}}</td>
+      <td>
+        <form>
+          <input id="choose" name="i_like" required pattern='{{item["answer"]}}' placeholder="Odpowiedź" autofocus title='Błędna odpowiedź'>
+          <button class="btn btn-secondary">Następna</button>
+        </form>
+      </td>
       <td class="answer">
         {% if content.get("edit") %}{{item["answer"]}}
         {% else %}
         <div class="hidden" style="display: none;">{{item["answer"]}}</div>
         {% endif %}
-      </td>
-      <td>
-        <form>
-          <input id="choose" name="i_like" required pattern='{{item["answer"]}}' placeholder="Odpowiedź" autofocus title='Błędna odpowiedź'>
-          <button>Następna</button>
-        </form>
       </td>
       {% if content.get("edit") %}
       <td>
@@ -47,6 +50,9 @@ hgtrhtsrhrthrtdhtrdhdrthdr
     </tr>
     {% endfor %}
   </table>
+  </div>
+  </div>
+  </div>
   <script>
     function changeId(value) {
       efn = $('#' + value + ' > .flashcard_name').text()
@@ -67,14 +73,4 @@ hgtrhtsrhrthrtdhtrdhdrthdr
       }
     }
   </script>
-
-  <style>
-    /* input:invalid {
-      border: 2px dashed red;
-    }
-
-    input:valid {
-      border: 2px solid black;
-    } */
-  </style>
 {% endblock %}

@@ -547,14 +547,17 @@ def learn(id):
 
       if results == 0:
           return render_template("error.html", content={"code": 204, "error": "Zestaw jest pusty"}), 204
-        
-      return render_template("learn.html", content={"set_id": id, "flashcard": result}), 200
+      else:
+        try:
+          cur = mysql.connection.cursor()
+          results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_id` = %s AND `state` = 'active'""", [id])
+        except Exception as ex:
+          return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+        else:
+          set_data = cur.fetchone()
+          cur.close()
+          return render_template("learn.html", content={"flashcard_sets": set_data, "flashcard": result}), 200
 
-      # return render_template("learn.html", content={"set_id": id}), 200
-      # return render_template("flashcard_sets.html", content={"flashcard_sets": result, "type": "user", "edit": True}), 200
-      # return f"{results}"
-
-    # return f"<p>GET This is learn {id}</p>"
   else:
     flash("Musisz być zalogowany, aby ...")
     return redirect("login")
@@ -578,10 +581,17 @@ def learn1(id):
 
       if results == 0:
           return render_template("error.html", content={"code": 204, "error": "Zestaw jest pusty"}), 204
-      print(all_flashcards, file=sys.stderr)
-      print(all_flashcards[0]['answer'], file=sys.stderr)
+      else:
+        try:
+          cur = mysql.connection.cursor()
+          results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_id` = %s AND `state` = 'active'""", [id])
+        except Exception as ex:
+          return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+        else:
+          set_data = cur.fetchone()
+          cur.close()
       
-      return render_template("learn1.html", content={"set_id": id, "flashcard": all_flashcards}), 200
+          return render_template("learn1.html", content={"flashcard_sets": set_data, "flashcard": all_flashcards}), 200
 
   else:
     flash("Musisz być zalogowany, aby ...")
@@ -591,8 +601,6 @@ def learn1(id):
 def learn2(id):
   if "user" in session:
     userData = session["user"]
-    # nwm = session["id"]
-    # setData = id
     try:
       cur = mysql.connection.cursor()
       
@@ -606,14 +614,18 @@ def learn2(id):
 
       if results == 0:
           return render_template("error.html", content={"code": 204, "error": "Zestaw jest pusty"}), 204
+      else:
+        try:
+          cur = mysql.connection.cursor()
+          results = cur.execute("""SELECT * FROM `flashcard_sets` WHERE `set_id` = %s AND `state` = 'active'""", [id])
+        except Exception as ex:
+          return render_template("error.html", content={"code": 500, "error": "Connect"}), 500
+        else:
+          set_data = cur.fetchone()
+          cur.close()
         
-      return render_template("learn2.html", content={"set_id": id, "flashcard": result}), 200
+          return render_template("learn2.html", content={"flashcard_sets": set_data, "flashcard": result}), 200
 
-      # return render_template("learn.html", content={"set_id": id}), 200
-      # return render_template("flashcard_sets.html", content={"flashcard_sets": result, "type": "user", "edit": True}), 200
-      # return f"{results}"
-
-    # return f"<p>GET This is learn {id}</p>"
   else:
     flash("Musisz być zalogowany, aby ...")
     return redirect("login")

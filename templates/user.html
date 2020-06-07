@@ -8,16 +8,14 @@
   <br>
   <a>Twój id: {{content.get('id')}}</a><br>
   <a>Twój e-mail: {{content.get('email')}}</a><br>
+
   {% if content.get("privileges") == 'admin' %}
     <a>Czy jesteś adminem: {{content.get('privileges')}}</a>
     <a href="/dashboard">Dashboard</a><br>
   {% endif %}
+
   <a>Twój status: {{content.get('state')}}</a>
 
-  <style>
-    a {
-      color: #525252;
-    }
-  </style>
+  
 
 {% endblock %}

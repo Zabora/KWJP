@@ -1,27 +1,32 @@
-{% extends "base.html" %}
-{% block title %}User Page{% endblock %}
+{% extends "otherbase.html" %}
+{% block title %}Fiszkowanie{% endblock %}
 {% block content %}
-  <table border = 1>
+  <br>
+  <h1 class="mt-4">{{content["flashcard_sets"]["set_name"]}}</h1>
+  <br>
+  <a style="color: #222222; border-color: #ffffff; background-color: #a0a0a0; font-size: 0.8rem;" 
+    class="btn btn-primary js-scroll-trigger" href="{{ url_for('flashcard', id=content['flashcard_sets']['set_id']) }}">Wróć
+  </a>
+  <br>
+  <br>
+
+
+  <div class="container">
+    <div class="row">
+      <div class="col-6">
+  <table class="table">
+    <thead>
     <tr>
-      <th>set_id</th>
+      <th>#</th>
+      <th>Fiszka</th>
+      <th>Odpowiedź</th>
+      <th></th>
     </tr>
-    <tr>
-      <td>{{content.get('set_id')}}</td>
-  </table>
-  <br>
-  <br>
-  <br>
-  <table border = 1>
-    <tr>
-      <th>ID</th>
-      <th>SET_ID</th>
-      <th>FLASHCARD_NAME</th>
-      <th>ANSWER</th>
-    </tr>
+  </thead>
+  <tbody>
     {% for item in content["flashcard"] %}
     <tr id="{{item['id']}}">
       <td>{{item["id"]}}</td>
-      <td>{{item["set_id"]}}</td>
       <td class="flashcard_name">{{item["flashcard_name"]}}</td>
         <td class="answer">{% if content.get("edit") %}{{item["answer"]}}
           {% else %}
@@ -40,7 +45,12 @@
     {% endif %}
     </tr>
     {% endfor %}
+  </tbody>
   </table>
+</div>
+</div>
+</div>
+
   <script>
     function changeId(value) {
       efn = $('#' + value + ' > .flashcard_name').text()
