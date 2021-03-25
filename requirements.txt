@@ -19,7 +19,7 @@ pycparser==2.20
 pycryptodome==3.9.7
 pycryptodomex==3.9.7
 pylint==2.5.2
-PyYAML==5.3.1
+PyYAML==5.4
 six==1.14.0
 toml==0.10.0
 Werkzeug==1.0.1
