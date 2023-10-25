@@ -22,5 +22,5 @@ pylint==2.5.2
 PyYAML==5.4
 six==1.14.0
 toml==0.10.0
-Werkzeug==2.2.3
+Werkzeug==3.0.1
 wrapt==1.12.1
